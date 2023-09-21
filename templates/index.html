@@ -15,37 +15,67 @@
       integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
       crossorigin="anonymous"
     ></script>
+    
+    <style>
+        .paragraph-style {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .welcome-section {
+            background-color: #cce5ff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 24px;
+        }
+
+        .navbar {
+            background-color: #f8f9fa;
+        }
+
+        .nav-link {
+            font-size: 18px;
+            color: #333;
+        }
+    </style>
     <title>Document</title>
   </head>
   <body>
     <div class="container-fluid" id="app">
-      <nav class="navbar navbar-expand-lg bg-warning">
-        <a class="navbar-brand" href="#">Vue Router App</a>
+        <nav class="navbar navbar-expand-lg">
+            <a class="navbar-brand" href="/">$ Grocery Store $</a>
 
-        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-          <div class="navbar-nav">
-            <a class="nav-link active" aria-current="page"
-              ><router-link to="/">Home</router-link></a
-            >
-            <!-- <a class="nav-link"><router-link to="/cart">Cart</router-link></a> -->
-            <a class="nav-link"><router-link to="/posts">Posts</router-link></a>
-            <!-- <a class="nav-link"><router-link to="/about">About Us</router-link></a> -->
-            <!-- <router-link to="/course/3"><a class="nav-link">Course</a></router-link></a> -->
-            <!-- <router-link v-else to="/course/5"><a class="nav-link">Course (ID = 5)</a></router-link></a> -->
-            <a class="nav-link"
-              ><router-link to="/contact-us">Contact Us</router-link></a
-            >
-            <!-- <p> Vuex Store variable : ${this.$store.state.count} </p> -->
-          </div>
-        </div>
-      </nav>
+            <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+                <div class="navbar-nav">
+                    <a class="nav-link" aria-current="page">
+                        <router-link to="/">Home</router-link>
+                    </a>
+                    
+                    <a class="nav-link active" aria-current="page">
+                        <router-link to="/user_register">UserRegister</router-link>
+                    </a>
+                    <a class="nav-link active" aria-current="page">
+                        <router-link to="/manager_register">ManagerRegister</router-link>
+                    </a>
+                    <a class="nav-link active" aria-current="page">
+                        <router-link to="/login">Login</router-link>
+                    </a>
+                    
+                </div>
+            </div>
+        </nav>
 
-      <div class="row">
-        <div class="column">
-          {{message}}
-          <router-view></router-view>
+        <div class="row">
+            <div class="column">
+                {{message}}
+                <router-view></router-view>
+            </div>
         </div>
-      </div>
     </div>
   </body>
   <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
@@ -55,8 +85,5 @@
     type="module"
     src="{{ url_for('static', filename = 'js/app.js') }}"
   ></script>
-  <script>
-    let a = {{a|tojson}}
-    console.log(a, typeof(a))
-  </script>
+  
 </html>

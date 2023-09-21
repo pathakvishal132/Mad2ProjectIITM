@@ -1,16 +1,33 @@
 const Home = Vue.component("home", {
   template: `
-                <div>
-                        <h2> Home Page </h2>
-                        <p>Number of Products : {{this.$store.state.count}}</p>
-                        <p>Total Amount : {{this.$store.state.cost}}</p>
-                        This is my home page !!      
-                        Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquid sed placeat vero, sit corporis fugiat rerum mollitia reiciendis dicta pariatur id architecto harum esse totam odio deserunt illum modi doloribus nobis velit magni repellendus at consequatur quasi. Illum quia rem atque eos itaque eius! Deleniti animi fuga inventore ut modi.
-                </div>
-    `,
+    
+      </div>
+
+      <div class="container mt-5">
+        <div class="welcome-section p-4">
+          <h2 class="mb-4">Welcome to Green Market</h2>
+          <div class="card-text mb-4">
+            <p>
+              At Green Market, we offer the freshest and finest selection of fruits and vegetables. 
+              Our mission is to provide you with the highest quality produce to keep you healthy and happy.
+              Whether you are a customer looking to buy the best products or a manager managing your inventory, 
+              we have got you covered. Browse through our categories and products to find the perfect items for you.
+            </p>
+          </div>
+          <router-link to="/login" class="btn btn-primary">Explore</router-link>
+        </div>
+      </div>
+    </div>
+  `,
+
+  data() {
+    return {
+      signed: false, // Set to true or false based on your logic
+    };
+  },
 
   mounted: function () {
-    document.title = "Blogs - Home";
+    document.title = "Home - Green Market";
   },
 });
 
