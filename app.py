@@ -37,17 +37,20 @@ api2.add_resource(
 api2.add_resource(
     ProductAPI,
     "/api/product",
-   
+    '/api/product/<int:category_id>',
     "/api/product/del/<int:product_id>",
 )
 
 # You would add this resource to your Flask API
 api2.add_resource(CartItemAPI, "/api/cart_item", "/api/cart_item/<int:cart_item_id>")
 
+
+
 # You would add this resource to your Flask API
 api2.add_resource(
     PurchasedProductAPI,
     "/api/purchased_product",
+    
     "/api/purchased_product/<int:purchased_product_id>",
 )
 

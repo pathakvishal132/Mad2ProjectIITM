@@ -137,9 +137,7 @@ class CategoryResource(Resource):
 
     @marshal_with(category_fields)
     def post(self):
-        # Apply the decorator here
-        @basic_auth_required
-        def protected_post():
+        
             parser = reqparse.RequestParser()
             parser.add_argument(
                 "name", type=str, required=True, help="Category name is required."
@@ -154,13 +152,11 @@ class CategoryResource(Resource):
             db.session.commit()
             return new_category, 201
 
-        return protected_post()
+       
 
     @marshal_with(category_fields)
     def put(self, cat_id):
-        # Apply the decorator here
-        @basic_auth_required
-        def protected_put():
+        
             category = Category.query.get(cat_id)
             if not category:
                 return {"message": "Category not found"}, 404
@@ -179,12 +175,10 @@ class CategoryResource(Resource):
             db.session.commit()
             return category, 200
 
-        return protected_put()
+            
 
     def delete(self, cat_id):
-        # Apply the decorator here
-        @basic_auth_required
-        def protected_delete():
+        
             category = Category.query.get(cat_id)
             if not category:
                 return {"message": "Category not found"}, 404
@@ -193,7 +187,7 @@ class CategoryResource(Resource):
             db.session.commit()
             return {"message": "Category deleted successfully"}, 204
 
-        return protected_delete()
+        
 
 
 product_fields = {
@@ -207,16 +201,18 @@ product_fields = {
 
 
 class ProductAPI(Resource):
+    
     @marshal_with(product_fields)
-    def get(self):
-        products = Product.query.all()
+    def get(self, category_id):
+        products = Product.query.filter_by(parent=category_id).all()
         if not products:
             return {"message": "No products found for this category"}, 404
-            
-        return products
+        
+        # Return a list of products
+        return products, 200
 
     @marshal_with(product_fields)
-    @basic_auth_required  # Apply the decorator here
+    
     def post(self):
         # Your existing post method code
         # ...
@@ -250,7 +246,7 @@ class ProductAPI(Resource):
         return new_product
 
     @marshal_with(product_fields)
-    @basic_auth_required  # Apply the decorator here
+    
     def put(self, category_id):
         # Your existing put method code
         # ...
@@ -279,7 +275,7 @@ class ProductAPI(Resource):
 
         return product
 
-    @basic_auth_required  # Apply the decorator here
+    
     def delete(self, product_id):
         # Your existing delete method code
         # ...
@@ -303,12 +299,88 @@ cart_item_fields = {
 
 
 class CartItemAPI(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument("user_id", type=int, required=True, help="User ID is required.")
+    parser.add_argument("product_id", type=int, required=True, help="Product ID is required.")
+    parser.add_argument("quantity", type=int, required=True, help="Quantity is required.")
+
     @marshal_with(cart_item_fields)  # worked
     def get(self):
         cart_item = CartItem.query.all()
         if not cart_item:
             return {"message": "Cart item not found"}, 404
         return cart_item
+    @marshal_with(cart_item_fields)
+    def post(self):
+        args = self.parser.parse_args()
+
+        # Check if the user and product exist
+        user = User.query.get(args["user_id"])
+        product = Product.query.get(args["product_id"])
+
+        if not user:
+            return {"message": "User not found"}, 404
+        if not product:
+            return {"message": "Product not found"}, 404
+
+        # Calculate the total based on quantity and product rate
+        total = args["quantity"] * product.rate
+
+        # Create a new cart item
+        cart_item = CartItem(
+            user_id=args["user_id"],
+            product_id=args["product_id"],
+            quantity=args["quantity"],
+            total=total,
+        )
+
+        # Add the cart item to the database
+        db.session.add(cart_item)
+        db.session.commit()
+
+        return cart_item, 201 
+    @marshal_with(cart_item_fields)
+    def put(self, cart_item_id):
+        args = self.parser.parse_args()
+
+        # Check if the cart item exists
+        cart_item = CartItem.query.get(cart_item_id)
+        if not cart_item:
+            return {"message": "Cart item not found"}, 404
+
+        # Check if the user and product exist
+        user = User.query.get(args["user_id"])
+        product = Product.query.get(args["product_id"])
+
+        if not user:
+            return {"message": "User not found"}, 404
+        if not product:
+            return {"message": "Product not found"}, 404
+
+        # Calculate the total based on quantity and product rate
+        total = args["quantity"] * product.rate
+
+        # Update the cart item
+        cart_item.user_id = args["user_id"]
+        cart_item.product_id = args["product_id"]
+        cart_item.quantity = args["quantity"]
+        cart_item.total = total
+
+        # Commit the changes to the database
+        db.session.commit()
+
+        return cart_item, 200 
+    def delete(self, cart_item_id):
+        # Check if the cart item exists
+        cart_item = CartItem.query.get(cart_item_id)
+        if not cart_item:
+            return {"message": "Cart item not found"}, 404
+
+        # Delete the cart item from the database
+        db.session.delete(cart_item)
+        db.session.commit()
+
+        return {"message": "Cart item deleted successfully"}, 204 
 
 
 purchased_product_fields = {

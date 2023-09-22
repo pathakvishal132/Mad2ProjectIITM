@@ -76,7 +76,7 @@ const routes = [
   }
   ,
   {
-    path: "/manager_dashboard",
+    path: '/manager_dashboard',
     component:manager_dashboard,
   }
   ,
