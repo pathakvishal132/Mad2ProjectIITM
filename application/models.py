@@ -48,8 +48,7 @@ class Product(db.Model):
     quantity = db.Column(db.Integer, nullable=False)
     parent = db.Column(db.Integer, db.ForeignKey("category.id"))
 
-    cart_items = db.relationship("CartItem", backref="product", lazy=True)
-    p_items = db.relationship("PurchasedProduct", backref="product", lazy=True)
+    cart_items = db.relationship("CartItem", backref="product", lazy="subquery")
 
     def __repr__(self):
         return self.name
@@ -61,16 +60,3 @@ class CartItem(db.Model):
     product_id = db.Column(db.Integer, db.ForeignKey("product.id", ondelete="CASCADE"))
     quantity = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Integer, nullable=False)
-
-
-class PurchasedProduct(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    product_id = db.Column(db.Integer, db.ForeignKey("product.id"), nullable=False)
-    quantity = db.Column(db.Integer, nullable=False)
-    total = db.Column(db.Float, nullable=False)
-    # Add this line to include purchased_at field
-    purchased_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f"PurchasedProduct(id={self.id}, user_id={self.user_id}, product_id={self.product_id})"

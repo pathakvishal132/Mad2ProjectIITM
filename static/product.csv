@@ -1,0 +1,9 @@
+id,name,unit,rate,quantity,parent
+2,Apple,Rs/kg,120.0,0,1
+4,Carrot,Rs/kg,60.0,90,2
+7,Bell pepper,Rs/piece,20.0,194,2
+8,Curd,Rs/kg,100.0,197,4
+13,Onion,Rs/kg,70.0,100,2
+14,Fanta,Rs/litre,80.0,97,5
+15,Sprite,Rs/litre,100.0,200,5
+17,Banana,Rs/kg,100.0,117,1

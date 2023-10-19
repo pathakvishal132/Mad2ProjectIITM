@@ -86,6 +86,8 @@ class UserRegistrationResource(Resource):
         db.session.add(u_name)
         db.session.commit()
         return {"msg": "success"}, 201
+
+
 class ManagerRegistrationResource(Resource):
     def get(self):
         # Query the database to retrieve a list of registered managers
@@ -99,6 +101,7 @@ class ManagerRegistrationResource(Resource):
         manager_list = [{"username": manager.username} for manager in managers]
 
         return {"managers": manager_list}, 200
+
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument("username", type=str, required=True)
@@ -120,12 +123,14 @@ class ManagerRegistrationResource(Resource):
 
         return {"message": "Manager registered successfully"}, 201
 
+
 # Define JSON fields for Category
 category_fields = {
     "id": fields.Integer,
     "name": fields.String,
     "maker": fields.Integer,
 }
+
 
 class CategoryResource(Resource):
     @marshal_with(category_fields)  # worked
@@ -137,57 +142,48 @@ class CategoryResource(Resource):
 
     @marshal_with(category_fields)
     def post(self):
-        
-            parser = reqparse.RequestParser()
-            parser.add_argument(
-                "name", type=str, required=True, help="Category name is required."
-            )
-            parser.add_argument(
-                "maker", type=int, required=True, help="Maker ID is required."
-            )
-            args = parser.parse_args()
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "name", type=str, required=True, help="Category name is required."
+        )
+        parser.add_argument(
+            "maker", type=int, required=True, help="Maker ID is required."
+        )
+        args = parser.parse_args()
 
-            new_category = Category(name=args["name"], maker=args["maker"])
-            db.session.add(new_category)
-            db.session.commit()
-            return new_category, 201
-
-       
+        new_category = Category(name=args["name"], maker=args["maker"])
+        db.session.add(new_category)
+        db.session.commit()
+        return new_category, 201
 
     @marshal_with(category_fields)
     def put(self, cat_id):
-        
-            category = Category.query.get(cat_id)
-            if not category:
-                return {"message": "Category not found"}, 404
+        category = Category.query.get(cat_id)
+        if not category:
+            return {"message": "Category not found"}, 404
 
-            parser = reqparse.RequestParser()
-            parser.add_argument(
-                "name", type=str, required=True, help="Category name is required."
-            )
-            parser.add_argument(
-                "maker", type=int, required=True, help="Maker ID is required."
-            )
-            args = parser.parse_args()
+        parser = reqparse.RequestParser()
+        parser.add_argument(
+            "name", type=str, required=True, help="Category name is required."
+        )
+        parser.add_argument(
+            "maker", type=int, required=True, help="Maker ID is required."
+        )
+        args = parser.parse_args()
 
-            category.name = args["name"]
-            category.maker = args["maker"]
-            db.session.commit()
-            return category, 200
-
-            
+        category.name = args["name"]
+        category.maker = args["maker"]
+        db.session.commit()
+        return category, 200
 
     def delete(self, cat_id):
-        
-            category = Category.query.get(cat_id)
-            if not category:
-                return {"message": "Category not found"}, 404
+        category = Category.query.get(cat_id)
+        if not category:
+            return {"message": "Category not found"}, 404
 
-            db.session.delete(category)
-            db.session.commit()
-            return {"message": "Category deleted successfully"}, 204
-
-        
+        db.session.delete(category)
+        db.session.commit()
+        return {"message": "Category deleted successfully"}, 204
 
 
 product_fields = {
@@ -201,18 +197,16 @@ product_fields = {
 
 
 class ProductAPI(Resource):
-    
     @marshal_with(product_fields)
     def get(self, category_id):
         products = Product.query.filter_by(parent=category_id).all()
         if not products:
             return {"message": "No products found for this category"}, 404
-        
+
         # Return a list of products
         return products, 200
 
     @marshal_with(product_fields)
-    
     def post(self):
         # Your existing post method code
         # ...
@@ -246,7 +240,6 @@ class ProductAPI(Resource):
         return new_product
 
     @marshal_with(product_fields)
-    
     def put(self, category_id):
         # Your existing put method code
         # ...
@@ -275,7 +268,6 @@ class ProductAPI(Resource):
 
         return product
 
-    
     def delete(self, product_id):
         # Your existing delete method code
         # ...
@@ -301,8 +293,12 @@ cart_item_fields = {
 class CartItemAPI(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument("user_id", type=int, required=True, help="User ID is required.")
-    parser.add_argument("product_id", type=int, required=True, help="Product ID is required.")
-    parser.add_argument("quantity", type=int, required=True, help="Quantity is required.")
+    parser.add_argument(
+        "product_id", type=int, required=True, help="Product ID is required."
+    )
+    parser.add_argument(
+        "quantity", type=int, required=True, help="Quantity is required."
+    )
 
     @marshal_with(cart_item_fields)  # worked
     def get(self):
@@ -310,6 +306,7 @@ class CartItemAPI(Resource):
         if not cart_item:
             return {"message": "Cart item not found"}, 404
         return cart_item
+
     @marshal_with(cart_item_fields)
     def post(self):
         args = self.parser.parse_args()
@@ -338,7 +335,8 @@ class CartItemAPI(Resource):
         db.session.add(cart_item)
         db.session.commit()
 
-        return cart_item, 201 
+        return cart_item, 201
+
     @marshal_with(cart_item_fields)
     def put(self, cart_item_id):
         args = self.parser.parse_args()
@@ -369,7 +367,8 @@ class CartItemAPI(Resource):
         # Commit the changes to the database
         db.session.commit()
 
-        return cart_item, 200 
+        return cart_item, 200
+
     def delete(self, cart_item_id):
         # Check if the cart item exists
         cart_item = CartItem.query.get(cart_item_id)
@@ -380,23 +379,4 @@ class CartItemAPI(Resource):
         db.session.delete(cart_item)
         db.session.commit()
 
-        return {"message": "Cart item deleted successfully"}, 204 
-
-
-purchased_product_fields = {
-    "id": fields.Integer,
-    "user_id": fields.Integer,
-    "product_id": fields.Integer,
-    "quantity": fields.Integer,
-    "total": fields.Float,
-    "purchased_at": fields.DateTime(dt_format="iso8601"),  # Use the appropriate format
-}
-
-
-class PurchasedProductAPI(Resource):
-    @marshal_with(purchased_product_fields)
-    def get(self):  # worked
-        purchased_product = PurchasedProduct.query.all()
-        if not purchased_product:
-            return {"message": "Purchased product not found"}, 404
-        return purchased_product
+        return {"message": "Cart item deleted successfully"}, 204

@@ -1,27 +1,62 @@
 const userdashboard = Vue.component("userdashboard", {
   template: `
     <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+          <a class="navbar-brand" href="/">Green Market</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <router-link to="/" class="nav-link">Home</router-link>
+              </li>
+              
+              <li class="nav-item">
+                <router-link to="/cart" class="nav-link">Cart</router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/logout" class="nav-link">Logout</router-link>
+              <li class="ms-3">
+        <form class="d-flex" @submit.prevent="searchAndHighlight">
+          <input class="form-control me-2" type="search" v-model="searchTerm" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success" type="submit">Search</button>
+        </form>
+      </li>
+                          
+            </ul>
+          </div>
+        </div>
+      </nav>
       <h2>User Dashboard</h2>
       <!-- Check if both categories and products are loaded before rendering -->
       <div v-if="dataLoaded">
         <div v-for="category in categories" :key="category.id" class="card mb-3">
-          <div class="card-header bg-primary text-white">
-            <h5>{{ category.name }}</h5>
-          </div>
-          <div class="card-body">
-            <!-- Check if there are products available for this category -->
-            <div class="row">
-              <div class="col-md-12 mb-3">
-                <div class="card h-100">
-                  <div class="card-body">
-                    <h5 class="card-title">Category: {{ category.name }}</h5>
-                    <!-- Iterate through products if available -->
-                    <div v-for="product in category.products" :key="product.id">
-                      <h6 class="card-subtitle mb-2 text-muted">{{ product.name }}</h6>
+            <div class="card-header bg-primary text-white">
+              <h5>{{ category.name }}</h5>
+            </div>
+            <div class="card-body">
+              <!-- Check if there are products available for this category -->
+              <div class="row">
+                <!-- Iterate through products if available -->
+                <div v-for="product in category.products" :key="product.id" class="col-md-4 mb-3">
+                  <div class="card h-100">
+                    <div class="card-body">
+                      <h6 class="card-title">{{ product.name }}</h6>
                       <p class="card-text">Rate: ₹{{ product.rate }} / {{ product.unit.split('/')[1] }}</p>
                       <p class="card-text">Quantity: {{ product.quantity }} {{ product.unit.split('/')[1] }}</p>
                       <div class="card-footer">
-                        <button @click="addToCart(category.id, product.id)" class="btn btn-primary">Add to cart</button>
+                        <button v-if="product.quantity > 0" @click="addToCart(category.id, product.id)" class="btn btn-primary">Add to cart</button>
+                        <span v-else class="text-danger">Out of Stock</span>
                       </div>
                     </div>
                   </div>
@@ -29,7 +64,6 @@ const userdashboard = Vue.component("userdashboard", {
               </div>
             </div>
           </div>
-        </div>
       </div>
       <!-- Display a loading message while data is being fetched -->
       <div v-else>
@@ -37,47 +71,61 @@ const userdashboard = Vue.component("userdashboard", {
       </div>
     </div>
   `,
-
+ style: `
+    <style scoped>
+  .highlight {
+    background-color: yellow; 
+    font-weight: bold; 
+  }
+</style>
+  `,
   data() {
     return {
       categories: [],
       dataLoaded: false, // Add a flag to track data loading
+      searchTerm: '',
     };
   },
 
   methods: {
+    searchAndHighlight() {
+      // Get the value typed in the search input
+      // Remove any previous highlights
+      if (this.dataLoaded) {
+        this.removeHighlights();
+
+        // Highlight the search term in the categories and products
+       
+        this.highlightText('.card-header h5');
+        this.highlightText('.card-title');
+        
+      }
+    },
+    removeHighlights() {
+      const highlightedElements = document.querySelectorAll('.highlight');
+      
+      highlightedElements.forEach((element) => {
+        const parent = element.parentElement;
+        parent.replaceChild(document.createTextNode(element.textContent), element);
+      });
+    },
+    highlightText(selector) {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach((element) => {
+        const text = element.textContent;
+        const regex = new RegExp(this.searchTerm, 'gi');
+        const highlightedText = text.replace(regex, (match) => {
+          return `<span  style="color: red;" >${match}</span>`;
+        });
+       
+        element.innerHTML = highlightedText;
+      });
+    },
     addToCart(categoryId, productId) {
       // Create a JSON object to send as the request body
-      const requestData = {
-        quantity: 1, // You can adjust the quantity as needed
-      };
-
-      // Make a POST request to your API endpoint (replace with your actual API URL)
-      fetch(`/api/add_to_cart/${categoryId}/${productId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
-      })
-        .then((response) => {
-          if (response.ok) {
-            // Successfully added to cart, you can handle the response accordingly
-            return response.json();
-          } else {
-            // Handle the error, e.g., product quantity exceeded, etc.
-            throw new Error('Failed to add to cart');
-          }
-        })
-        .then((data) => {
-          // Handle the success response here if needed
-          alert(`Added to cart: ${data.message}`);
-        })
-        .catch((error) => {
-          // Handle any errors here
-          console.error('Error:', error);
-          alert('Failed to add to cart.');
-        });
+      const destination = `/add_cart/${categoryId}/${productId}`;
+     
+      this.$router.push(destination);
     },
 
     fetchCategories() {

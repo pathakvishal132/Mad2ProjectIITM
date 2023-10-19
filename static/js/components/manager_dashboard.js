@@ -1,52 +1,84 @@
 const manager_dashboard = Vue.component("manager_dashboard", {
   template: `
-    <div>
-      <h2>Manager Dashboard</h2>
-      <div class="container">
+     <div>
+      <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+          <a class="navbar-brand" href="/">Green Market</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarNav"
+            aria-controls="navbarNav"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+              <li class="nav-item">
+                <router-link to="/" class="nav-link">Home</router-link>
+              </li>
+              <li class="nav-item">
+                <router-link to="/logout" class="nav-link">Logout</router-link>
+              </li>
+              <li class="nav-item">
+                <div>
+                  <button @click="trigger_celery_job" class="btn btn-primary">Download Product Details</button>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </nav>
+      <div class="container mt-4">
         <h2>Categories</h2>
         <!-- Input field and button for adding a new category -->
-        <div>
-          <input v-model="categoryName" type="text" placeholder="Enter category name" @keyup.enter="addCategory" />
-          <button @click="addCategory" class="btn btn-success">Add Category</button>
+        <div class="d-flex">
+          <input v-model="categoryName" type="text" class="form-control" placeholder="Enter category name" @keyup.enter="addCategory" />
+          <button @click="addCategory" class="btn btn-success ms-2">Add Category</button>
         </div>
         <div v-if="dataLoaded">
           <!-- Loop through categories and display each category -->
-          <div v-for="category in categories" :key="category.id" class="card mb-3">
-            <div class="card-header bg-primary text-white">
+          <div v-for="category in categories" :key="category.id" class="card mt-3">
+            <div class="card-header bg-primary text-white d-flex justify-content-between">
               <h5>{{ category.name }}</h5>
               <!-- Buttons for editing and deleting categories -->
-              <button @click="editCategory(category.id)" class="btn btn-warning">Edit</button>
-              <button @click="deleteCategory(category.id)" class="btn btn-danger">Delete</button>
+              <div>
+                <button @click="editCategory(category.id)" class="btn btn-warning me-2">Edit</button>
+                <button @click="deleteCategory(category.id)" class="btn btn-danger">Delete</button>
+              </div>
             </div>
             <div class="card-body">
               <h3>Products</h3>
               <!-- Form for adding a new product for this category -->
               <form @submit.prevent="addProduct(category.id)">
-                <div class="form-group">
-                  <label for="product_name">Product Name:</label>
+                <div class="mb-3">
+                  <label for="product_name" class="form-label">Product Name:</label>
                   <input v-model="productName" type="text" class="form-control" id="product_name" required>
                 </div>
-                <div class="form-group">
-                  <label for="unit">Unit:</label>
-                  <select v-model="productUnit" class="form-control" id="unit" required>
+                <div class="mb-3">
+                  <label for="unit" class="form-label">Unit:</label>
+                  <select v-model="productUnit" class="form-select" id="unit" required>
                     <option value="Rs/kg">Rs/kg</option>
                     <option value="Rs/litre">Rs/litre</option>
                     <option value="Rs/piece">Rs/piece</option>
                   </select>
                 </div>
-                <div class="form-group">
-                  <label for="rate">Rate:</label>
+                <div class="mb-3">
+                  <label for="rate" class="form-label">Rate:</label>
                   <input v-model="productRate" type="number" class="form-control" id="rate" required>
                 </div>
-                <div class="form-group">
-                  <label for="quantity">Quantity:</label>
+                <div class="mb-3">
+                  <label for="quantity" class="form-label">Quantity:</label>
                   <input v-model="productQuantity" type="number" class="form-control" id="quantity" required>
                 </div>
                 <button type="submit" class="btn btn-success">Add Product</button>
               </form>
               <!-- Loop through products within the category -->
-              <div v-for="product in category.products" :key="product.id" class="row">
-                <div class="col-md-4 mb-3">
+              <div v-for="product in category.products" :key="product.id" class="row mt-3">
+                <div class="col-md-4">
                   <div class="card h-100">
                     <div class="card-body">
                       <h5 class="card-title">{{ product.name }}</h5>
@@ -81,34 +113,56 @@ const manager_dashboard = Vue.component("manager_dashboard", {
 
   methods: {
     // Add a new category
-    addCategory() {
-      const data = {
-        name: this.categoryName,
-        maker: "1", // Replace with the actual maker ID
-      };
-
-      fetch('/api/category', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+    trigger_celery_job() {
+      fetch("/trigger_celery_job").then(r => r.json()
+      ).then(d => {
+        console.log("Celery Task Details:", d);
+        let interval = setInterval(() => {
+          fetch(`/status/${d.Task_ID}`).then(r => r.json()
+          ).then(d => {
+              if (d.Task_State === "SUCCESS") {
+                console.log("task finished")
+                clearInterval(interval);
+                window.location.href = "/download-file";
+              }
+              else {
+                console.log("task still executing")
+              }
+          })
+        }, 4000)
       })
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .then(responseData => {
-          console.log('Category added:', responseData);
-          this.categories.push(responseData);
-          this.categoryName = '';
-        })
-        .catch(error => {
-          console.error('Error adding category:', error);
-        });
+    
     },
+    addCategory() {
+  const data = {
+    category_name: this.categoryName, // Match the JSON field name with the Flask route
+  };
+
+  fetch('/create_category', { // Use the same endpoint as defined in Flask
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(responseData => {
+      console.log('Category added:', responseData);
+      this.categories.push(responseData);
+      this.categoryName = '';
+    })
+    .catch(error => {
+      console.error('Error adding category:', error);
+    });
+},
+
+
+
 
     // Edit an existing category
     editCategory(categoryId) {
@@ -241,43 +295,28 @@ const manager_dashboard = Vue.component("manager_dashboard", {
 
     // Delete an existing product
     deleteProduct(productId) {
-      // Implement logic to delete the product
-      let productCategory, productIndex;
-  for (const category of this.categories) {
-    const foundProductIndex = category.products.findIndex(product => product.id === productId);
-    if (foundProductIndex !== -1) {
-      productCategory = category;
-      productIndex = foundProductIndex;
-      break;
-    }
-  }
+      const url = `/api/product/del/${productId}`;
 
-  if (!productCategory || productIndex === undefined) {
-    console.error('Product not found.');
-    return;
-  }
-
-  // Confirm with the user before deleting
-  if (confirm('Are you sure you want to delete this product?')) {
-    // Send the DELETE request to remove the product
-    fetch(`/api/product/del/${productId}`, {
-      method: 'DELETE',
+    // Make a DELETE request to delete the product
+    fetch(url, {
+      method: 'DELETE', // Use POST method as specified in your Flask route
     })
-      .then(response => {
-        if (response.status === 200) {
-          console.log('Product deleted successfully.');
-          // Remove the product from the UI
-          productCategory.products.splice(productIndex, 1);
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.message === 'Product deleted successfully') {
+          // Handle success
+          // You may want to update your product list or perform other actions
+          console.log('Product deleted successfully');
         } else {
-          throw new Error('Network response was not ok');
+          // Handle error
+          console.error('Error:', data.message);
         }
       })
-      .catch(error => {
-        console.error('Error deleting product:', error);
+      .catch((error) => {
+        // Handle network or other errors
+        console.error('Error:', error);
       });
-  } else {
-    console.log('Deletion canceled.');
-  }
+
     },
 
     // Fetch categories from the API
@@ -331,7 +370,7 @@ const manager_dashboard = Vue.component("manager_dashboard", {
           console.error("Error:", error);
         })
         .finally(() => {
-          // Set the dataLoaded flag to true when all data is loaded
+          
           this.dataLoaded = true;
         });
     },

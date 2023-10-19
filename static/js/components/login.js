@@ -1,29 +1,63 @@
 const login = Vue.component("login", {
   template: `
-    <div class="container">
-        <div class="login-card">
-            <h1 class="text-center">Login</h1>
-            <p class="text-danger">{{ error_message }}</p>
-            <form @submit.prevent="loginUser">
-                <div class="mb-3">
-                    <label for="username" class="form-label">User/Manager Name:</label>
-                    <input type="text" class="form-control" v-model="userData.name" required>
-                </div>
-                <div class="mb-3">
-                    <label for="password" class="form-label">Password:</label>
-                    <input type="password" class="form-control" v-model="userData.password" required>
-                </div>
-                <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary btn-block">Login</button>
-                </div>
-                <br>
-                <h3 style="text-align: center;">New Account</h3>
-                <div class="d-grid gap-2">
-                    <router-link to="/register" class="btn btn-primary btn-block">Register</router-link>
-                </div>
-            </form>
+  <div>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container">
+        <a class="navbar-brand" href="/">Grocery Store</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+              <router-link to="/" class="nav-link">Home</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link to="/user_register" class="nav-link">User Register</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link to="/manager_register" class="nav-link">Manager Register</router-link>
+            </li>
+            <li class="nav-item">
+              <router-link to="/login" class="nav-link">Login</router-link>
+            </li>
+          </ul>
         </div>
-    </div>
+      </div>
+    </nav>
+    <h2 class="mb-4 text-center">Login</h2>
+    <form @submit.prevent="loginUser" class="mt-4">
+      <div class="row">
+        <div class="col-md-6 offset-md-3">
+          <div class="form-group">
+            <label for="username">User/Manager Name:</label>
+            <input type="text" class="form-control" v-model="userData.name" required>
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" v-model="userData.password" required>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+          </div>
+          <div class="form-group">
+            <router-link to="/user_register" class="nav-link active" aria-current="page">
+              <button type="button" class="btn btn-primary btn-block">Register</button>
+            </router-link>
+          </div>
+        </div>
+      </div>
+      <p class="text-danger text-center">{{ error_message }}</p>
+    </form>
+  </div>
   `,
 
   data() {
@@ -37,64 +71,45 @@ const login = Vue.component("login", {
   },
 
   methods: {
-    loginUser() {
-      const userApiUrl = "/api/user"; // URL for user data
-      const managerApiUrl = "/api/manager"; // URL for manager data
+    async loginUser() {
+      const apiUrl = "/login"; // Use the actual Flask login API endpoint
 
-      // Fetch user data
-      fetch(userApiUrl)
-        .then((userResponse) => {
-          if (userResponse.ok) {
-            return userResponse.json();
-          } else {
-            throw new Error("Failed to fetch user data");
-          }
-        })
-        .then((userData) => {
-          // Fetch manager data
-          fetch(managerApiUrl)
-            .then((managerResponse) => {
-              if (managerResponse.ok) {
-                return managerResponse.json();
-              } else {
-                throw new Error("Failed to fetch manager data");
-              }
-            })
-            .then((managerData) => {
-              // Check if the user exists in user data
-              const userExists = userData.users.some(
-                (user) => user.name === this.userData.name
-              );
-
-              // Check if the manager exists in manager data
-              const managerExists = managerData.managers.some(
-                (manager) => manager.username === this.userData.name
-              );
-
-              if (userExists) {
-                // User exists, route to user dashboard
-                
-                this.$router.push("/userdashboard"); // Example route for user dashboard
-              } else if (managerExists) {
-                // Manager exists, route to manager dashboard
-                this.$router.push("/manager_dashboard"); // Example route for manager dashboard
-                
-              } else {
-                // Handle login failure (display error message)
-                this.error_message = "Invalid username or password";
-              }
-            })
-            .catch((error) => {
-              // Handle network errors when fetching manager data
-              this.error_message = "Network error. Please try again.";
-              console.error("Error:", error);
-            });
-        })
-        .catch((error) => {
-          // Handle network errors when fetching user data
-          this.error_message = "Network error. Please try again.";
-          console.error("Error:", error);
+      try {
+        const response = await fetch(apiUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            username: this.userData.name,
+            password: this.userData.password,
+          }),
         });
+
+        if (response.ok) {
+          // Handle successful login (e.g., redirect to the appropriate dashboard)
+          const responseData = await response.json();
+          if (responseData.userType === "user") {
+            // User login, route to user dashboard
+            
+            this.$router.push("/userdashboard");
+          } else if (responseData.userType === "manager") {
+            // Manager login, route to manager dashboard
+            this.$router.push("/manager_dashboard");
+          } else {
+            // Handle other cases (e.g., display an error message)
+            this.error_message = "Invalid username or password";
+          }
+        } else {
+          // Handle login failure (e.g., display an error message)
+          this.error_message = "Invalid username or password";
+          console.error("Error:", response.statusText);
+        }
+      } catch (error) {
+        // Handle network errors
+        this.error_message = "Network error. Please try again.";
+        console.error("Error:", error);
+      }
     },
   },
 

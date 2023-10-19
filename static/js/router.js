@@ -1,14 +1,12 @@
 import Home from "./components/home.js";
 import ContactUs from "./components/contact.js";
-
-import edit_cat from "./components/edit_cat.js";
+import logout from "./components/logout.js";
+import cart from "./components/cart.js";
 import userdashboard from "./components/userdashboard.js";
 import manager_dashboard from "./components/manager_dashboard.js";
-import delete_cart from "./components/delete_cart.js";
-import product from "./components/products.js";
-import purchased_products from "./components/purchased_product.js";
-import delete_product from "./components/delete_product.js";
-import delete_category from "./components/delete_category.js";
+
+
+
 import login from "./components/login.js";
 import manager_register from "./components/manager_register.js";
 import user_register from "./components/user_register.js";
@@ -19,13 +17,19 @@ const routes = [
     component: Home,
   },
   {
-    path: "/add_cart",
+    path: "/add_cart/:category_id/:product_id",
+    name: "add_cart",
     component: add_cart,
+    props: true,
+  },
+  {
+    path: "/logout",
+    component: logout,
   },
   
   {
-    path: "/edit_cat",
-    component: edit_cat,
+    path: "/cart",
+    component: cart,
   },
   {
     path: "/manager_register",
@@ -40,36 +44,14 @@ const routes = [
     component: login,
   }
   ,
-  {
-    path: "/delete_product",
-    component: delete_product,
-  }
-  ,
-  {
-    path: "/delete_category",
-    component: delete_category,
-  },
-  {
-    path: "/product",
-    component: product,
-  },
-  
-  {
-    path: "/purchased_products",
-    component: purchased_products,
-  },
   
   {
     path: "/contact-us",
     component: ContactUs,
   },
   
-  ,
-  {
-    path: "/delete_cart",
-    component: delete_cart,
-  }
-  ,
+  
+  
   {
     path: "/userdashboard",
     component: userdashboard,
@@ -79,11 +61,8 @@ const routes = [
     path: '/manager_dashboard',
     component:manager_dashboard,
   }
-  ,
-  {
-    path: "/edit_cat",
-    component: edit_cat,
-  }
+  
+  
   
 ];
 
